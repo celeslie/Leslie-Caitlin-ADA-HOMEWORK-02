@@ -1,0 +1,340 @@
+---
+title: "Leslie-Caitlin-HOMEWORK-02"
+author: "Caitlin Leslie"
+date: "March 1, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Question 1**
+1. Every Saturday, at the same time, a primatologist goes and sits in the forest in the morning and listens for titi monkey calls, counting the number of calls they hear in a 2 hour window from 5am to 7am. Based on previous knowledge, she believes that the mean number calls she will hear in that time is 15. Let X represent the appropriate Poisson random variable of the number of calls heard in each monitoring session.
+
+1.a. What is the probability that she will hear more than 8 calls during any given session?
+```{r}
+1-ppois(q=8, lambda=15)
+```
+
+
+1.b. What is the probability that she will hear no calls in a session?
+```{r}
+ppois(q=0, lambda=15)
+```
+
+1.c. What is the probability that she will hear exactly 3 calls in a session?
+```{r}
+ppois(q=3, lambda = 15) - ppois(q=2, lambda = 15)
+```
+
+1.d. Plot the relevant Poisson mass function over the values in range 0 ≤ x ≤ 30.
+```{r}
+x<-0:30
+calls<-dpois(x, lambda=15)
+barplot(calls, names.arg=x, xlab="X", ylab="Probability", main="Poisson Mass Function")
+```
+
+1.e. Simulate 104 results from this distribution (i.e., 2 years of Saturday monitoring sessions).
+
+```{r}
+sim<-rpois(n=104, lambda = 15)
+sim
+```
+
+1.f. Plot the simulated results using hist() and use xlim() to set the horizontal limits to be from 0 to 30. How does your histogram compare to the shape of the probability mass function you plotted above?
+
+```{r}
+hist(sim, xlab="X", xlim = range(0:30), main="Simulated Results")
+```
+
+The shapes are similar.
+
+**Question 2**
+2. Load in the dataset “zombies.csv” from my GitHub repository at https://github.com/difiore/ADA-2019. This data includes the first and last name and gender of the entire population of 1000 people who have survived the zombie apocalypse and are now ekeing out an existence somewhere on the East Coast, along with several other variables (height, weight, age, number of years of education, number of zombies they have killed, and college major.
+
+```{r}
+library(curl)
+f <- f <- curl("https://raw.githubusercontent.com/difiore/ADA-2019/master/zombies.csv")
+d <- read.csv(f, header = TRUE, sep = ",", stringsAsFactors = FALSE)
+head(d)
+```
+
+2.a. Calculate the population mean and standard deviation for each quantitative random variable (height, weight, age, number of zombies killed, and years of education).
+
+```{r}
+sdz<-function(x) {sqrt((sum((x - mean(x))^2))/length(x))}
+
+mean(d$height)
+sdz(d$height)
+mean(d$weight)
+sdz(d$weight)
+mean(d$age)
+sdz(d$age)
+mean(d$zombies_killed)
+sdz(d$zombies_killed)
+mean(d$years_of_education)
+sdz(d$years_of_education)
+```
+
+2.b. Use {ggplot} and make boxplots of each of these variable by gender.
+```{r}
+library(ggplot2)
+boxplot(d$height~gender,d, main="Height by Gender")
+```
+
+```{r}
+boxplot(d$weight~gender,d, main="Weight by Gender")
+```
+
+```{r}
+boxplot(d$age~gender,d, main="Age by Gender")
+```
+
+```{r}
+boxplot(d$zombies_killed~gender,d, main="Zombies Killed by Gender")
+```
+
+```{r}
+boxplot(d$years_of_education~gender,d, main="Years of Education by Gender")
+```
+
+2.c. Use {ggplot} and make scatterplots of height and weight in relation to age. Do these variables seem to be related? In what way?
+
+```{r}
+plot(d$height~age,d, main="Height in Relation to Age")
+plot(d$weight~age,d, main="Weight in Relation to Age")
+```
+
+They are both positively correlated with age.
+
+2.d. Using histograms and Q-Q plots, check whether the quantitative variables seem to be drawn from a normal distribution. Which seem to be and which do not?
+
+```{r}
+hist(d$height)
+qqnorm(d$height)
+qqline(d$height)
+```
+
+Height seems to be from a normal distribution
+
+```{r}
+hist(d$weight)
+qqnorm(d$weight)
+qqline(d$weight)
+```
+
+Weight seems to be from a normal distribution
+
+```{r}
+hist(d$age)
+qqnorm(d$age)
+qqline(d$age)
+```
+
+Age seems to be from a normal distribution
+
+```{r}
+hist(d$zombies_killed)
+qqnorm(d$zombies_killed)
+qqline(d$zombies_killed)
+```
+
+Number of zombies killed does NOT seem to be from a normal distribution. It seems to be from a Poisson Distribution.
+
+```{r}
+hist(d$years_of_education)
+qqnorm(d$years_of_education)
+qqline(d$years_of_education)
+```
+
+Numbers of years of education does NOT Seem to be from a normal distribution. It seems to be from a Poisson Distribution.
+
+2.e. Now use the sample() function to sample ONE subset of 30 zombies (without replacement) from this population and calculate the mean and sample standard deviation for each variable. Also estimate the standard error for each variable and construct the 95% confidence interval for each mean. Note that for the variables that are not drawn from the normal distribution, you will need to base your estimate of the CIs on some different distribution!
+
+Sample one subset of 30 zombies without replacement
+```{r}
+library(manipulate)
+zsubset<-d[sample(nrow(d), 30, replace=FALSE), ]
+zsubset
+
+se <- function(x) {
+    sd(x)/sqrt(length(x))
+} #standard error function
+```
+
+Height
+
+```{r}
+h<-zsubset$height
+mean(h)
+sd(h)
+se(h)
+upper <- mean(h) + qnorm(0.975, mean = 0, sd = 1) * se(h)
+lower <- mean(h) + qnorm(0.025, mean = 0, sd = 1) * se(h)
+c(lower, upper) #95% confidence interval
+
+```
+
+Weight
+```{r}
+w<-zsubset$weight
+mean(w)
+sd(w)
+se(w)
+upper <- mean(w) + qnorm(0.975, mean = 0, sd = 1) * se(w)
+lower <- mean(w) + qnorm(0.025, mean = 0, sd = 1) * se(w)
+c(lower, upper) #95% confidence interval
+```
+
+Age
+```{r}
+a<-zsubset$age
+mean(a)
+sd(a)
+se(a)
+upper <- mean(a) + qnorm(0.975, mean = 0, sd = 1) * se(a)
+lower <- mean(a) + qnorm(0.025, mean = 0, sd = 1) * se(a)
+c(lower, upper) #95% confidence interval
+```
+
+Number of zombies killed
+
+```{r}
+z<-zsubset$zombies_killed
+mean(z)
+sd(z)
+se(z)
+upper <- mean(z) + qpois(0.975, lambda = mean(z)) * se(z)
+lower <- mean(z) + qpois(0.025, lambda = mean(z)) * se(z)
+c(lower, upper) #95% confidence interval
+
+```
+
+Years of education
+```{r}
+y<-zsubset$years_of_education
+mean(y)
+sd(y)
+se(y)
+upper <- mean(y) + qpois(0.975, lambda = mean(y)) * se(y)
+lower <- mean(y) + qpois(0.025, lambda = mean(y)) * se(y)
+c(lower, upper) #95% confidence interval
+```
+
+2.f. Now draw 99 more random samples of 30 zombies out and calculate the mean for each of the these samples. Together with the first sample you drew out, you now have a set of 100 means for each variable (each based on 30 observations), which constitutes a sampling distribution for each variable. What are the means and standard deviations of the sampling distribution for each variable? How do the standard deviations compare to the standard errors estimated in [2.e.]? What do these sampling distributions look like? Are they normally distributed? What about for those variables that you concluded were not originally drawn from a normal distribution?
+
+```{r}
+k<-99
+n<-30
+s<-NULL
+for (i in 1:k) {
+    s[[i]] <- d[sample(nrow(d), 30, replace=FALSE), ]
+}
+
+s<-(c(s, list(zsubset)))
+
+```
+
+Height
+
+```{r}
+
+mh <- NULL
+for (i in 1:k) {
+    mh[i] <- mean(s[[i]]$height)
+}
+mh
+
+mean(mh)
+sd(mh) 
+
+hist(mh)
+qqnorm(mh)
+qqline(mh)
+
+```
+
+
+Weight
+
+```{r}
+
+mw <- NULL
+for (i in 1:k) {
+    mw[i] <- mean(s[[i]]$weight)
+}
+mw
+
+
+mean(mw)
+sd(mw) 
+
+hist(mw)
+qqnorm(mw)
+qqline(mw)
+
+```
+
+Age
+
+```{r}
+
+ma <- NULL
+for (i in 1:k) {
+    ma[i] <- mean(s[[i]]$age)
+}
+ma
+
+
+mean(ma)
+sd(ma) 
+
+hist(ma)
+qqnorm(ma)
+qqline(ma)
+
+```
+
+Number of Zombies Killed
+
+
+```{r}
+
+mz <- NULL
+for (i in 1:k) {
+    mz[i] <- mean(s[[i]]$zombies_killed)
+}
+mz
+
+
+mean(mz)
+sd(mz) 
+
+hist(mz)
+qqnorm(mz)
+qqline(mz)
+
+```
+
+Years of Education
+
+```{r}
+
+me <- NULL
+for (i in 1:k) {
+    me[i] <- mean(s[[i]]$years_of_education)
+}
+me
+
+
+mean(me)
+sd(me) 
+
+hist(me)
+qqnorm(me)
+qqline(me)
+
+```
+
+All of the standard deviations are similar to the standard errors calculated in 2.e. However, none of the sampling distributions of the variables seem to follow a normal distribution. 
